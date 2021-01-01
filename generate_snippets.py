@@ -1,16 +1,16 @@
 import os
 import toml
 import json
-from dashmachine.paths import documentation_folder, vs_folder
-from vscode_integration.utils import (
+from utils import (
     build_type_description,
     build_snippet_body_template,
 )
 
 
-def generate_snippets():
+def generate_snippets(root_folder):
     snippet_json = {}
     snippet_json = class_snippets(
+        root_folder=root_folder,
         snippet_json=snippet_json,
         class_name="Card",
         prefill="['${1:card_name}']\n${2}",
@@ -20,18 +20,21 @@ def generate_snippets():
         ),
     )
     snippet_json = class_snippets(
+        root_folder=root_folder,
         snippet_json=snippet_json,
         class_name="DashboardOptions",
         prefill="[DashboardOptions]\n${1}",
         description="\nOnly to be used in a dashboard toml file.",
     )
     snippet_json = class_snippets(
+        root_folder=root_folder,
         snippet_json=snippet_json,
         class_name="Settings",
         prefill="[Settings]\n${1}",
         description="\nOnly to be used in the settings.toml file.",
     )
     snippet_json = class_snippets(
+        root_folder=root_folder,
         snippet_json=snippet_json,
         class_name="User",
         prefill="['${1:username}']\n${2}",
@@ -39,18 +42,18 @@ def generate_snippets():
             "\nReplace username with unique string.\n" "Only to be used in users.toml"
         ),
     )
-    snippet_json = utility_snippets(snippet_json)
+    snippet_json = utility_snippets(root_folder, snippet_json)
 
     with open(
-        os.path.join(vs_folder, "ext", "snippets", "snippets.code-snippets"), "w"
+        os.path.join(root_folder, "ext", "snippets", "snippets.code-snippets"), "w"
     ) as snippets_file:
         snippets_file.write(json.dumps(snippet_json))
     return snippet_json
 
 
-def class_snippets(snippet_json, class_name, prefill, description):
+def class_snippets(root_folder, snippet_json, class_name, prefill, description):
     class_toml = toml.load(
-        os.path.join(documentation_folder, f"{class_name.lower()}.toml")
+        os.path.join(root_folder, 'documentation', f"{class_name.lower()}.toml")
     )
     snippet_json[class_name] = {}
     snippet_json[class_name]["prefix"] = class_name
@@ -69,8 +72,8 @@ def class_snippets(snippet_json, class_name, prefill, description):
     return snippet_json
 
 
-def utility_snippets(snippet_json):
-    utils_toml = toml.load(os.path.join(documentation_folder, "utils.toml"))
+def utility_snippets(root_folder, snippet_json):
+    utils_toml = toml.load(os.path.join(root_folder, 'documentation', "utils.toml"))
     for classname, options in utils_toml.items():
         snippet_json[classname] = {}
         snippet_json[classname]["prefix"] = classname
